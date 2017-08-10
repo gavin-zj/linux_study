@@ -528,3 +528,5 @@ declare Array_nic_list=(${nic_name_unused})
 print_menu_1
 }
 main_baby
+
+hello baby
