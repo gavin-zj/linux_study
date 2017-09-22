@@ -119,7 +119,6 @@ ssh_flag=0
             else
                 break
             fi
-
         fi
     done
 

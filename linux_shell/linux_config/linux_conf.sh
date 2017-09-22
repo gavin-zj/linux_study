@@ -9,14 +9,14 @@ fi
 
 func_log(){
     #name(任务名称)  执行结果描述  日志文件
-    echo -e "\nTASK: [$(hostname) | ${1}] ===>>>" | tee -a $3
+    echo -e "\nTASK: [$(hostname) | $(date +%Y%m%d-%T) ${1}] ===>>>" | tee -a $3
     echo -e "${2}\n" | tee -a $3
 }
 
 func_check_name(){
     if [[ -z $1 ]]; then
-        func_log "no name" "failed: pls check config file." ${log_file}
-        exit 1
+        name='no task name'
+        func_log "no task name" "tips: rename it -no task name." ${log_file}
     fi
 }
 
@@ -161,7 +161,11 @@ func_file(){
             if [[ -n ${file_src} ]]; then
                 if [[ -n ${file_dest} ]]; then
                     func_backup "${file_dest}"
-                    cat ${file_dest}.bak.ori > ${file_dest} && cat ${file_src} >> ${file_dest}
+                    #if [[ $? -ne 0 ]]; then
+                    #   func_log "file backup" "failed. ${file_dest} backup failed" ${log_file}
+                    #fi
+                    #cat ${file_dest}.bak.ori > ${file_dest} && cat ${file_src} >> ${file_dest}
+                    cat ${file_src} >> ${file_dest}
                     if [[ $? -eq 0 ]]; then
                         func_log "$1" "success." ${log_file}
                     else
@@ -182,13 +186,31 @@ func_file(){
 
 
 func_backup(){
-    #使用方法：func_backup 备份文件
-    if [[ -f $1 ]]; then
+    #使用方法：func_backup 备份文件/文件夹
+    #如果备份成功，返回值为0
+    if [[ -f $1 || -d $1 ]]; then
         if [[ -e ${1}.bak.ori ]]; then
-            cp ${1} ${1}.$(date +%y%m%d-%T).bak || func_log "file backup" "failed. $1 backup failed" ${log_file}
+            cp -ra ${1} ${1}.$(date +%Y%m%d-%T).bak &> /dev/null
+            if [[ $? -eq 0 ]]; then
+                #func_log "file backup" "success. $1 backup success." ${log_file}
+                return 0
+            else
+                func_log "file backup" "failed. $1 backup failed" ${log_file}
+                return 1
+            fi
         else
-            cp ${1}{,.bak.ori} || func_log "file backup" "failed. $1 backup failed" ${log_file}
+            cp -ra $(echo $1 | sed 's@^\(\/.*\)/$@\1@'){,.bak.ori} &> /dev/null
+            if [[ $? -eq 0 ]]; then
+                #func_log "file backup" "success. $1 backup success." ${log_file}
+                return 0
+            else
+                func_log "file backup" "failed. $1 backup failed" ${log_file}
+                return 1
+            fi
         fi
+    else
+        func_log "file backup" "failed. $1 : No such file or directory." ${log_file}
+        return 2
     fi
 }
 
@@ -210,6 +232,11 @@ for line in $(cat conf | sed 's/ /++/g'); do
                 func_check_name "$name"
                 option=$(echo ${line} | cut -d ':' -f 2)
                 func_file "${name}" "${option}"
+                unset name
+                ;;
+            * )
+                func_check_name "$name"
+                func_log "$name" "failed. $flag : no such action,check conf file pls." ${log_file}
                 unset name
                 ;;
         esac

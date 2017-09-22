@@ -178,7 +178,7 @@ nmcli connection up ${3} 2> /dev/null || nmcli connection up ${3}
 }
 
 Func_group_del(){
-# 新建绑定之前，将系统中存在的未使用的绑定配置文件
+# 新建绑定之前，将系统中存在的未使用的绑定配置文件删除
 # 使用方法 Func_group_del
 net_base_dir=${net_base_dir:=/etc/sysconfig/network-scripts}
 for i in $(cd ${net_base_dir} && ls ifcfg-*); do
