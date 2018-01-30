@@ -108,3 +108,8 @@ rr|wrr|lc|wlc|lblc|lblcr|dh|sh|sed|nq,
 --rate 显示速率信息
 --sort 对虚拟服务器和真实服务器排序输出
 --numeric -n 输出IP 地址和端口的数字形式
+
+
+
+
+node
